@@ -12,28 +12,43 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Style CSS pour que ça ressemble à une vraie App iPhone
+# Style CSS forcé pour éviter le texte blanc sur fond blanc
 st.markdown("""
     <style>
     .main { background-color: #f5f5f7; }
+    
+    /* Style des cartes Note et Certif */
+    .metric-container {
+        background-color: #ffffff !important;
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        text-align: center;
+        border: 1px solid #e1e1e1;
+    }
+    
+    /* On force la couleur du texte en NOIR */
+    .metric-container p {
+        color: #666666 !important;
+        margin: 0 !important;
+        font-size: 0.8em;
+    }
+    .metric-container h2 {
+        color: #1d1d1f !important;
+        margin: 0 !important;
+        font-weight: bold;
+    }
+    
+    /* Style du bouton eBay */
     .stButton>button {
         width: 100%;
         border-radius: 12px;
-        height: 3em;
-        background-color: #007aff;
-        color: white;
+        height: 3.5em;
+        background-color: #007aff !important;
+        color: white !important;
         font-weight: bold;
         border: none;
-    }
-    .stTextInput>div>div>input {
-        border-radius: 10px;
-    }
-    .metric-container {
-        background-color: white;
-        padding: 15px;
-        border-radius: 15px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        text-align: center;
+        margin-top: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -55,9 +70,8 @@ def clean_text_elements(full_text, cert):
     return " ".join(final_words).upper()
 
 # --- HEADER APP ---
-st.markdown("<h2 style='text-align: center; color: #1d1d1f;'>🔍 Scanner PSA</h2>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; color: #1d1d1f;'>🔍 Scanner PSA Pro</h3>", unsafe_allow_html=True)
 
-# Tabs pour un look plus "iOS"
 tab1, tab2 = st.tabs(["📸 Caméra", "📂 Album"])
 
 with tab1:
@@ -77,7 +91,7 @@ if img_file:
         # Extraction Data
         texte_colle = full_text.replace(" ", "")
         certs = re.findall(r'\d{8,9}', texte_colle)
-        cert_val = certs[-1] if certs else ""
+        cert_val = certs[-1] if certs else "N/A"
         
         grade_val = "N/A"
         if "10" in full_text: grade_val = "10"
@@ -87,26 +101,34 @@ if img_file:
         details_carte = clean_text_elements(full_text, cert_val)
         construction = f"PSA {grade_val} - {details_carte}"
 
-        # --- AFFICHAGE STYLE IPHONE ---
         st.markdown("---")
         
-        # Affichage des métriques dans des jolies cartes
+        # AFFICHAGE DES CARTES (Texte forcé en noir via HTML direct pour plus de sécurité)
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown(f"<div class='metric-container'><p style='color:gray;margin:0;'>NOTE</p><h2 style='margin:0;color:#007aff;'>{grade_val}</h2></div>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class='metric-container'>
+                    <p>NOTE</p>
+                    <h2 style='color: #007aff !important;'>{grade_val}</h2>
+                </div>
+            """, unsafe_allow_html=True)
         with col2:
-            st.markdown(f"<div class='metric-container'><p style='color:gray;margin:0;'>CERTIF</p><h2 style='margin:0;font-size:1.2em;padding-top:8px;'>{cert_val}</h2></div>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class='metric-container'>
+                    <p>CERTIFICAT</p>
+                    <h2 style='font-size: 1.1em;'>{cert_val}</h2>
+                </div>
+            """, unsafe_allow_html=True)
 
-        st.write("") # Espace
+        st.write("") 
         
-        # Titre éditable
-        titre_final = st.text_input("📝 Nom détecté :", value=construction)
+        # Zone d'édition
+        titre_final = st.text_input("📝 Nom de la carte :", value=construction)
         
-        # Bouton eBay géant
         if titre_final:
             search_query = titre_final.replace(" ", "+")
             ebay_url = f"https://www.ebay.fr/sch/i.html?_nkw={search_query}&LH_Sold=1&LH_Complete=1"
-            st.link_button(f"💰 VOIR PRIX VENDUS", ebay_url)
+            st.link_button(f"💰 VOIR LES PRIX VENDUS", ebay_url)
 
         with st.expander("📄 Voir le texte brut"):
             st.code(full_text)
